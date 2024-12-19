@@ -26,30 +26,18 @@ const customStyles = {
     }
 };
 
-function initial(recipe) {
-    return {
-        recipe,
-        machines: 1,
-        ingredients: [],
-        products: [],
-        overclocking: 1,
-        amplification: 0
-    }
-}
-
-function dataShape(recipe = {ingredients: {}, products: {}}, overclocking = 1, amplification = 0) {
-    console.log(recipe, 'shape.recipe');
-    const obj = {ingredients: {}, products: {}, overclocking, amplification};
+function getShape(recipe, overclocking = 1, amplification = 0) {
+    const shape = {recipe, ingredients: {}, products: {}, overclocking, amplification, machines: 1};
 
     Object.values(recipe.ingredients).forEach((ingredient) => {
-        obj.ingredients[ingredient.name] = itemsPerMinute(ingredient.amount, recipe.duration) * overclocking;
+        shape.ingredients[ingredient.name] = itemsPerMinute(ingredient.amount, recipe.duration) * overclocking * shape.machines;
     });
     
     Object.values(recipe.products).forEach((product) => {
-        obj.products[product.name] = itemsPerMinute(product.amount, recipe.duration) * overclocking;
+        shape.products[product.name] = itemsPerMinute(product.amount, recipe.duration) * overclocking * shape.machines;
     });
 
-    return obj;
+    return shape;
 }
 
 const powerFactor = Math.log(2.5) / Math.log(2);
@@ -63,40 +51,46 @@ const itemsPerMinute = (amount, duration) => (60/duration) * amount;
         value: 110
     }
 */
-function reducer(state, action) {
 
+// onChange={e => dispatch({type: 'set_overclock_by_item', value: e.target.value, source: 'products', item: product.name })}
+function reducer(state, action) {
+    const newState = { ...state };
+    console.log(state, 'state1');
     if(action.value < 0) return state;
     if(action.type === 'set_overclock_percent' && action.value > 250) {
         return state;
     }
 
+    switch(action.type) {
+        case 'set_overclock_by_item': 
+            newState[action.source][action.item] = action.value;
+            break;
+    }
+    console.log(state, 'state2');
+    if(action.value.at(-1) === '.' || !action.value) {
+        return newState;
+    }
+
     switch (action.type) {
         case 'set_machine_count':
-            return {
-                ...state,
-                machines: parseInt(action.value),
-            }
+            newState.machines = parseInt(action.value);
             break;
         case 'set_overclock_percent':
-            return {
-                ...state,
-                overclocking: parseFloat(action.value) * .01
-            }
-        case 'set_overlock_by_item': {
-            const overclocking = getOverclockByItems(state, action);
-            return {
-                ...state,
-                overclocking: overclocking
-            }
-        }
+            newState.overclocking = parseFloat(action.value) * .01;
+            break;
+        case 'set_overclock_by_item':
+            newState.overclocking = getOverclockByItems(state, action);
+            break;
     }
+    console.log(state, 'state3');
+    return newState;
 }
 
 const getOverclockByItems = ({recipe, machines}, {source, item, value}) => {
-    console.log(recipe, 'recipe.fn');
-    console.log(source, 'source.fn');
-    console.log(item, 'item.fn');
-    console.log(value, 'value.fn');
+    // console.log(recipe, 'recipe.fn');
+    // console.log(source, 'source.fn');
+    // console.log(item, 'item.fn');
+    // console.log(value, 'value.fn');
     const newValue = value.at(-1) === '.' ? value + "0" : value;
     const parsedValue = parseFloat(value.at(-1) === '.' ? value + "0" : value);
     const currentItem = Object.values(recipe[source]).find((i) => i.name = item);
@@ -114,10 +108,12 @@ export default function RecipeModal() {
     const ingredients = Object.values(recipe.ingredients);
     const products = Object.values(recipe.products);
     const getItem = name => items[name];
-    const [state, dispatch] = useReducer(reducer, {}, () => initial(recipe));
+    const [state, dispatch] = useReducer(reducer, {}, () => getShape(recipe, 1, 0));
 
-    const maxes = dataShape(recipe, 2.5);
-    console.log(dataShape(recipe, 2.5, ), 'shape');
+    const maxes = getShape(recipe, 2.5);
+    //console.log(getShape(recipe, 2.5, ), 'shape');
+
+    const format = (num) => Math.round((num + Number.EPSILON) * 100) / 100;
 
     return (
         <Modal
@@ -143,19 +139,19 @@ export default function RecipeModal() {
                         <h4>Ingredients</h4>
                         {ingredients.map(ingredient => (
                             <div className="input-group">
-                                <div className="input-increase">
-                                    <MdAdd />
-                                </div>
                                 <div className="input-label">
                                     <ItemImage item={getItem(ingredient.name)} />
                                 </div>
                                 <input 
                                     type="text"
-                                    value={itemsPerMinute(ingredient.amount, recipe.duration) * state.machines} 
+                                    value={state['ingredients'][ingredient.name]} 
                                     size={0}
                                 />
                                 <div className="input-unit">/min</div>
                                 {/* <Spinner dispatch={(value) => dispatch({'type': 'set_machine_count', value: state.machines + value})} /> */}
+                                <div className="input-increase">
+                                    <MdAdd />
+                                </div>
                                 <div className="input-decrease">
                                     <MdOutlineRemove />
                                 </div>
@@ -171,7 +167,7 @@ export default function RecipeModal() {
                                 </div>
                                 <input 
                                     type="text"
-                                    value={itemsPerMinute(product.amount, recipe.duration) * state.machines}
+                                    value={state['products'][product.name]}
                                 />
                                 <div className="input-unit">/min</div>
                                 <Spinner dispatch={(value) => dispatch({'type': 'set_machine_count', value: state.machines + value})} />
@@ -202,7 +198,7 @@ export default function RecipeModal() {
                                 <input
                                     type="text"
                                     max="250"
-                                    value={state.overclocking * 100}
+                                    value={format(state.overclocking * 100)}
                                     onChange={e => dispatch({'type': 'set_overclock_percent', value: e.target.value})} 
                                 />
                                 <div className="input-unit">%</div>
@@ -211,14 +207,14 @@ export default function RecipeModal() {
                         <div className="recipe-modal-column">
                             <h4>Ingredients</h4>
                             {ingredients.map(ingredient => (
-                                <div className="input-group">
+                                <div className={`input-group ${state['ingredients'][ingredient.name] > maxes['ingredients'][ingredient.name] ? 'error' : ''}`}>
                                     <div className="input-label">
                                         <ItemImage item={getItem(ingredient.name)} />
                                     </div>
                                     <input
                                         type="text"
-                                        value={itemsPerMinute(ingredient.amount, recipe.duration) * state.machines * state.overclocking} 
-                                        onChange={e => dispatch({type: 'set_overlock_by_item', value: e.target.value, source: 'ingredients', item: ingredient.name })}
+                                        value={state['ingredients'][ingredient.name]} 
+                                        onChange={e => dispatch({type: 'set_overclock_by_item', value: e.target.value, source: 'ingredients', item: ingredient.name })}
                                     />
                                     <div className="input-unit">/min</div>
                                 </div>
@@ -233,8 +229,8 @@ export default function RecipeModal() {
                                     </div>
                                     <input
                                         type="text"
-                                        value={itemsPerMinute(product.amount, recipe.duration) * state.machines * state.overclocking} 
-                                        onChange={e => dispatch({type: 'set_overlock_by_item', value: e.target.value, source: 'products', item: product.name })}
+                                        value={state['products'][product.name]} 
+                                        onChange={e => dispatch({type: 'set_overclock_by_item', value: e.target.value, source: 'products', item: product.name })}
                                     />
                                     <div className="input-unit">/min</div>
                                 </div>
