@@ -8,17 +8,105 @@ const file = readFileSync(filePath, 'utf16le').slice(1);
 const json = JSON.parse(file);
 
 const constructors = {
-    "Build_AssemblerMk1_C": "Assembler",
-    "Build_Blender_C": "Blender",
-    "Build_ConstructorMk1_C": "Constructor",
-    "Build_Converter_C": "Converter",
-    "Build_FoundryMk1_C": "Foundry",
-    "Build_HadronCollider_C": "Hadron Collider",
-    "Build_ManufacturerMk1_C": "Manufacturer",
-    "Build_OilRefinery_C": "Oil Refinery",
-    "Build_Packager_C": "Packer",
-    "Build_QuantumEncoder_C": "Quantum Encoder",
-    "Build_SmelterMk1_C": "Smelter",
+    "Build_AssemblerMk1_C": { 
+        name: "Assembler",
+        powerUsage: 15,
+        somersloopSlots: 2,
+        width: 10,
+        length: 15,
+        height: 11,
+        className: "Build_AssemblerMk1_C"
+    },
+    "Build_Blender_C": {
+        name: "Blender",
+        powerUsage: 75,
+        somersloopSlots: 4,
+        width: 18,
+        length: 16,
+        height: 15,
+        className: "Build_Blender_C"
+    },
+    "Build_ConstructorMk1_C": {
+        name: "Constructor",
+        powerUsage: 4,
+        somersloopSlots: 1,
+        width: 7.9,
+        length: 9.9,
+        height: 8,
+        className: "Build_ConstructorMk1_C"
+    },
+    "Build_Converter_C": {
+        name: "Converter",
+        powerUsage: 250,
+        somersloopSlots: 2,
+        width: 16,
+        length: 16,
+        height: 16,
+        className: "Build_Converter_C"
+    },
+    "Build_FoundryMk1_C": {
+        name: "Foundry",
+        powerUsage: 16,
+        somersloopSlots: 2,
+        width: 10,
+        length: 9,
+        height: 9,
+        className: "Build_FoundryMk1_C"
+    },
+    "Build_HadronCollider_C": {
+        name: "Hadron Collider",
+        powerUsage: 750,
+        somersloopSlots: 4,
+        width: 24,
+        length: 38,
+        height: 32,
+        className: "Build_HadronCollider_C"
+    },
+    "Build_ManufacturerMk1_C": {
+        name: "Manufacturer",
+        powerUsage: 55,
+        somersloopSlots: 4,
+        width: 18,
+        length: 20,
+        height: 12,
+        className: "Build_ManufacturerMk1_C"
+    },
+    "Build_OilRefinery_C": {
+        name: "Oil Refinery",
+        powerUsage: 30,
+        somersloopSlots: 2,
+        width: 10,
+        length: 20,
+        height: 31,
+        className: "Build_OilRefinery_C"
+    },
+    "Build_Packager_C": {
+        name: "Packer",
+        powerUsage: 10,
+        somersloopSlots: 0,
+        width: 8,
+        length: 8,
+        height: 12,
+        className: "Build_Packager_C"
+    },
+    "Build_QuantumEncoder_C": {
+        name: "Quantum Encoder",
+        powerUsage: 1000,
+        somersloopSlots: 4,
+        width: 22,
+        length: 48,
+        height: 18,
+        className: "Build_QuantumEncoder_C"
+    },
+    "Build_SmelterMk1_C": {
+        name: "Smelter",
+        powerUsage: 4,
+        somersloopSlots: 1,
+        width: 5,
+        length: 9,
+        height: 9,
+        className: "Build_SmelterMk1_C"
+    },
 };
 
 const nativeClasses = {
