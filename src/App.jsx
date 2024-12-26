@@ -21,6 +21,7 @@ import TestNode from './components/TestNode';
 import ContextMenu from './components/ContextMenu';
 import DevTools from './components/Devtools/Devtools';
 import { ModalProvider } from './contexts/modal';
+import { DataProvider } from './contexts/data';
 import RecipeModal from './components/RecipeModal';
 import RecipesModal from './components/RecipesModal';
 import ItemEdge from './components/ItemEdge';
@@ -84,38 +85,40 @@ function App() {
  
   return (
     <div style={{ width: '100vw', height: '100vh' }}>
-      <ReactFlowProvider>
-        <ModalProvider>
-          <ReactFlow
-            ref={ref}
-            nodes={nodes}
-            nodeTypes={nodeTypes}
-            edgeTypes={edgeTypes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            // onConnect={onConnect}
-            proOptions={proOptions}
-            // colorMode="dark"
-            snapToGrid={true}
-            snapGrid={snapGrid}
-            defaultEdgeOptions={{type: 'smoothstep'}}
-            onEdgeContextMenu={onContextMenu}
-            onNodeContextMenu={onContextMenu}
-            onPaneClick={onPaneClick}
-            >
-            <Panel position='top-center'>
-              <AddRecipe />
-            </Panel>
-            <Background color="#ccc" variant='dots' />
-            {menu && <ContextMenu onClick={onPaneClick} {...menu} />}
-            <Controls />
-            <MiniMap />
-            <DevTools />
-          </ReactFlow>
-          <Modals />
-        </ModalProvider>
-      </ReactFlowProvider>
+      <DataProvider>
+        <ReactFlowProvider>
+          <ModalProvider>
+            <ReactFlow
+              ref={ref}
+              nodes={nodes}
+              nodeTypes={nodeTypes}
+              edgeTypes={edgeTypes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              // onConnect={onConnect}
+              proOptions={proOptions}
+              // colorMode="dark"
+              snapToGrid={true}
+              snapGrid={snapGrid}
+              defaultEdgeOptions={{type: 'smoothstep'}}
+              onEdgeContextMenu={onContextMenu}
+              onNodeContextMenu={onContextMenu}
+              onPaneClick={onPaneClick}
+              >
+              <Panel position='top-center'>
+                <AddRecipe />
+              </Panel>
+              <Background color="#ccc" variant='dots' />
+              {menu && <ContextMenu onClick={onPaneClick} {...menu} />}
+              <Controls />
+              <MiniMap />
+              <DevTools />
+            </ReactFlow>
+            <Modals />
+          </ModalProvider>
+        </ReactFlowProvider>
+      </DataProvider>
     </div>
   );
 }
