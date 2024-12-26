@@ -1,6 +1,5 @@
-import data from '../data.json';
+import { useData } from '../contexts/data';
 import ItemImage from './ItemImage';
-const { items } = data;
 
 const styles = {
     img: {
@@ -11,6 +10,7 @@ const styles = {
 }
 
 export default function RecipeItem({recipe, item}) {
+    const { items } = useData();
     const amount = (60 / recipe.duration ) * item.amount;
     return (
         <div 

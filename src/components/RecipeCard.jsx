@@ -1,6 +1,4 @@
 import { MdLogin, MdLogout } from "react-icons/md";
-import data from '../data.json';
-const { items } = data;
 import ItemImage from "./ItemImage";
 
 export default function RecipeCard({recipe, onClick}) {
@@ -9,7 +7,7 @@ export default function RecipeCard({recipe, onClick}) {
     return (
         <div className="recipe-card" onClick={onClick}>
             <div className="recipe-image">
-                <ItemImage item={recipe.products[0]} />
+                <ItemImage item={Object.values(recipe.products)[0]} />
             </div>
             <h5 className="recipe-title" title={title}>{title}</h5>
             <div className="recipe-body">

@@ -1,10 +1,9 @@
-import data from '../data.json';
-const { items, recipes, constructors } = data;
 import { useModal } from '../contexts/modal';
 import { useReactFlow } from '@xyflow/react';
 import Modal from "react-modal";
 import RecipeCard from "./RecipeCard";
 import { memo } from 'react';
+import { useData } from '../contexts/data';
 
 Modal.setAppElement('#root');
 
@@ -43,7 +42,7 @@ const customStyles = {
 const RecipesModal = memo(function RecipesModal() {
     const { isOpen, closeModal, search, setSearch } = useModal();
     const { addNodes } = useReactFlow();
-    console.log('RecipesModal');
+    const { items, recipes } = useData();
 
     const addRecipeNode = (recipe) => {
         console.log('addRecipeNode');
@@ -82,8 +81,6 @@ const RecipesModal = memo(function RecipesModal() {
 
         return false;
     });
-
-    // console.log(filteredRecipes, 'filteredRecipes');
 
     return (
         <Modal

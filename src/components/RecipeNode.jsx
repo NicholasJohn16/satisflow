@@ -2,13 +2,10 @@ import {
     Handle,
     Position
 } from "@xyflow/react";
-import data from '../data.json';
 import RecipeItem from "./RecipeItem";
 import ItemHandle from "./ItemHandle";
 import { useRef, useEffect } from "react";
 import { MdLogin, MdLogout } from "react-icons/md";
-
-const { items } = data;
 
 const styles = {
     node: {
@@ -69,6 +66,7 @@ function RecipeNode({data, selected, id}) {
                     style={offsets[ingredients.length][index]}
                     id={`${id}-${ingredient.name}`}
                     nodeId={id}
+                    key={key}
                     // isValidConnection={isValidConnection}
                 />
             ))}
@@ -82,7 +80,7 @@ function RecipeNode({data, selected, id}) {
                             <MdLogin size={'16px'} style={{verticalAlign: 'middle'}} />
                         </div>
                         {ingredients.map(([key, ingredient]) => (
-                            <RecipeItem recipe={recipe} item={ingredient} />
+                            <RecipeItem key={key} recipe={recipe} item={ingredient} />
                         ))}
                     </div>
                     <div className="recipe-row">
@@ -90,7 +88,7 @@ function RecipeNode({data, selected, id}) {
                             <MdLogout size={'16px'} style={{verticalAlign: 'middle'}} />
                         </div>
                         {products.map(([key, product]) => (
-                            <RecipeItem recipe={recipe} item={product} />
+                            <RecipeItem key={key} recipe={recipe} item={product} />
                         ))}
                     </div>
                 </div>
@@ -105,6 +103,7 @@ function RecipeNode({data, selected, id}) {
                     id={`${id}-${product.name}`}
                     style={offsets[products.length][index]}
                     nodeId={id}
+                    key={key}
                     // isValidConnection={isValidConnection}
                 />
             ))}

@@ -5,13 +5,13 @@ import { useHandleConnections,
          addEdge,
          getConnectedEdges
         } from "@xyflow/react";
-import data from '../data.json';
 import ItemImage from "./ItemImage";
+import { useData } from "../contexts/data";
 
-const { items } = data;
 
 function ItemHandle({id, nodeId, position, type, style}) {
     const { setEdges, getNode, getEdges } = useReactFlow();
+    const { items } = useData();
 
     const connectedEdges = getConnectedEdges([{id: nodeId}], getEdges());
     // console.log(connectedEdges, 'connectedEdges');
