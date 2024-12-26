@@ -109,9 +109,46 @@ button.default:focus-visible {
 .recipe-card {
   border: 1px solid; 
   border-radius: .5rem;
-  flex: 1 1 calc((100% - (7 * 1rem)) / 8);
-  max-width: calc((100% - (7 * 1rem)) / 8);
+  flex: 1 1 calc((100% - (1 * 1rem)) / 2);
+  max-width: calc((100% - (1 * 1rem)) / 2);
   box-sizing: border-box;
+}
+
+/* Small devices (landscape phones, 576px and up) */
+@media (min-width: 576px) { 
+  .recipe-card {
+    flex: 1 1 calc((100% - (3 * 1rem)) / 4);
+    max-width: calc((100% - (3 * 1rem)) / 4);
+  }
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 768px) {
+  .recipe-card {
+    flex: 1 1 calc((100% - (4 * 1rem)) / 5);
+    max-width: calc((100% - (4 * 1rem)) / 5);
+  }
+}
+
+/* Large devices (desktops, 992px and up) */
+@media (min-width: 992px) {
+  .recipe-card {
+    flex: 1 1 calc((100% - (7 * 1rem)) / 8);
+    max-width: calc((100% - (7 * 1rem)) / 8);
+  }
+}
+
+/* X-Large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) { 
+  .recipe-card {
+    flex: 1 1 calc((100% - (7 * 1rem)) / 8);
+    max-width: calc((100% - (7 * 1rem)) / 8);
+  }
+}
+
+/* XX-Large devices (larger desktops, 1400px and up) */
+@media (min-width: 1400px) { 
+
 }
 
 .recipe-image {
@@ -217,19 +254,22 @@ button.default:focus-visible {
 }
 
 .input-increase, .input-decrease {
-  border: 1px solid #ccc;
-  border-radius: .5rem;
   padding: .25rem .5rem;
+  border-left: 1px solid #ccc;
   cursor: pointer;
 }
 .input-increase svg, .input-decrease svg {
   vertical-align: middle;
 }
 .input-increase {
-  margin-right: .25rem;
+  border-top: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
 }
 .input-decrease {
-  margin-left: .25rem;
+  border: 1px solid #ccc;
+  /* border-left: 0; */
+  border-top-right-radius: .5rem;
+  border-bottom-right-radius: .5rem;
 }
 
 .input-group input:last-child,
@@ -265,4 +305,14 @@ button.default:focus-visible {
 
 .input-spinner div + div {
   border-top: 1px solid #ccc;
+}
+
+.amplification-select {
+  width: 100%;
+  box-sizing: border-box;
+  background-color: transparent;
+  border: 1px solid #ccc;
+  border-radius: .5rem;
+  padding: .25rem;
+  height: 36.5px;
 }
