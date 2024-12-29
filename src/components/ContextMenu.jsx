@@ -13,7 +13,7 @@ export default function ContextMenu({
 }) {
   console.log(arguments, 'arguments');
   const { deleteElements, getNode } = useReactFlow();
-  const { openModal, setRecipe } = useModal();
+  const { openModal, setNode } = useModal();
 
   const deleteEdge = () => {
     const elements = {};
@@ -25,7 +25,7 @@ export default function ContextMenu({
   }
 
   const showRecipeModal = () => {
-    setRecipe(element.data.recipe);
+    setNode(element);
     openModal('recipe');
   }
  

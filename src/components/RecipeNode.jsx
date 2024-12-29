@@ -6,6 +6,7 @@ import RecipeItem from "./RecipeItem";
 import ItemHandle from "./ItemHandle";
 import { useRef, useEffect } from "react";
 import { MdLogin, MdLogout } from "react-icons/md";
+import { useData } from "../contexts/data";
 
 const styles = {
     node: {
@@ -37,11 +38,12 @@ const offsets = {
 
 function RecipeNode({data, selected, id}) {
     const recipe = data.recipe;
-    const ingredients = Object.entries(recipe.ingredients);
-    const products = Object.entries(recipe.products);
+    const { getItem } = useData();
+    const ingredients = Object.entries(data.ingredients);
+    const products = Object.entries(data.products);
     // const sourceConnections = useHandleConnections({type: 'source', id: 'Desc_Computer_C'});
     // const targetConnections = useHandleConnections({type: 'target', id: 'Desc_Computer_C'});
-
+    const factoryCount = Array.from({ length: data.machineCount}, (v, i) => i + 1);
     const renderCount = useRef(0);
 
     useEffect(() => {
@@ -59,14 +61,14 @@ function RecipeNode({data, selected, id}) {
 
     return (
         <>
-            {ingredients.map(([key, ingredient], index) => (
+            {ingredients.map(([ingredient, amount], index) => (
                 <ItemHandle 
                     type="target"
                     position={Position.Top}
                     style={offsets[ingredients.length][index]}
-                    id={`${id}-${ingredient.name}`}
+                    id={`${id}-${ingredient}`}
                     nodeId={id}
-                    key={key}
+                    key={ingredient}
                     // isValidConnection={isValidConnection}
                 />
             ))}
@@ -74,21 +76,26 @@ function RecipeNode({data, selected, id}) {
                 style={styles.node}
             >
                 <div>{recipe.displayName}</div>
+                <div className="factories">
+                    {factoryCount.map(() => (
+                        <div style={{ height: data.factory.height * 5, width: data.factory.width * 5, backgroundColor: 'black', margin: '4px'}} ></div>
+                    ))}
+                </div>
                 <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', margin: '.5rem 0 .5rem 0'}}>
                     <div className="recipe-row">
                         <div style={{padding: '2px'}}>
                             <MdLogin size={'16px'} style={{verticalAlign: 'middle'}} />
                         </div>
-                        {ingredients.map(([key, ingredient]) => (
-                            <RecipeItem key={key} recipe={recipe} item={ingredient} />
+                        {ingredients.map(([ingredient, amount]) => (
+                            <RecipeItem key={ingredient} amount={amount} item={ingredient} />
                         ))}
                     </div>
                     <div className="recipe-row">
                         <div style={{padding: '2px'}}>
                             <MdLogout size={'16px'} style={{verticalAlign: 'middle'}} />
                         </div>
-                        {products.map(([key, product]) => (
-                            <RecipeItem key={key} recipe={recipe} item={product} />
+                        {products.map(([product, amount]) => (
+                            <RecipeItem key={product} amount={amount} item={product} />
                         ))}
                     </div>
                 </div>
@@ -96,14 +103,14 @@ function RecipeNode({data, selected, id}) {
                 <button className="default" onClick={() => console.log(getEdges())}>Log Edges</button>
                 <button className="default">{renderCount.current}</button>
             </div>
-            {products.map(([key, product], index) => (
+            {products.map(([product, amount], index) => (
                 <ItemHandle
                     type="source"
                     position={Position.Bottom} 
-                    id={`${id}-${product.name}`}
+                    id={`${id}-${product}`}
                     style={offsets[products.length][index]}
                     nodeId={id}
-                    key={key}
+                    key={product}
                     // isValidConnection={isValidConnection}
                 />
             ))}

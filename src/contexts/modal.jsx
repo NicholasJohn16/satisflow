@@ -7,7 +7,7 @@ const ModalContext = createContext();
 export const ModalProvider = ({ children }) => {
   const [isOpen, setIsOpen] = useState({recipes: false, recipe: false});
   const [search, setSearch] = useState('');
-  const [recipe, setRecipe] = useState();
+  const [node, setNode] = useState();
 
   const openModal = (name) => {
     console.log('openModal');
@@ -22,10 +22,10 @@ export const ModalProvider = ({ children }) => {
       closeModal,
       search,
       setSearch,
-      recipe,
-      setRecipe 
+      node,
+      setNode
     };
-  }, [isOpen, search, recipe]);
+  }, [isOpen, search, node]);
 
   return (
     <ModalContext.Provider value={contextValue}>

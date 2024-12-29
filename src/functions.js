@@ -11,10 +11,11 @@ function getShape({recipe, factory, machineCount = 1, clockSpeed = 1, amplificat
     });
     
     Object.values(recipe.products).forEach((product) => {
-        // const amplification = 
+        const amplified = (amplification / factory.somersloopSlots) + 1 || 1;
         shape.products[product.name] =  new Decimal(getItemsPerMinute(product.amount, recipe.duration))
                                             .times(clockSpeed)
                                             .times(machineCount)
+                                            .times(amplified)
                                             .toNumber();
     });
 
@@ -36,8 +37,6 @@ function reducer(state, action) {
         machineCount: state.machineCount,
         amplification: state.amplification,
     };
-
-    console.log(action);
 
     if(action.value < 0) return state;
     if(action.type === 'set_overclock_percent' && action.value > 250) {
@@ -73,7 +72,7 @@ function reducer(state, action) {
             newState.clockSpeed = action.value / (itemsPerMinute * newState.machineCount);
             break;
         case 'set_amplification':
-            newState.amplification = action.value;
+            newState.amplification = parseInt(action.value);
             break;
     }
 

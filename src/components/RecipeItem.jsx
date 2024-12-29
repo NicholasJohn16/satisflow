@@ -9,20 +9,21 @@ const styles = {
     },
 }
 
-export default function RecipeItem({recipe, item}) {
-    const { items } = useData();
-    const amount = (60 / recipe.duration ) * item.amount;
+export default function RecipeItem({item, amount}) {
+    const { getItem } = useData();
+    const currentItem = getItem(item);
+    // const amount = (60 / recipe.duration ) * item.amount;
     return (
         <div 
             className="recipe-item"
-            key={item.className}
+            key={currentItem.className}
             style={styles.div}
-            title={`${amount}x ${items[item.name].displayName}`}
+            title={`${amount}x ${currentItem.displayName}`}
         >
             {amount.toLocaleString()}
             <ItemImage
                 style={styles.img} 
-                item={item}
+                item={currentItem}
             />
         </div>
     )

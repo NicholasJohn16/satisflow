@@ -8,6 +8,7 @@ import { useReducer, useState  } from "react";
 import { getShape, reducer, totalEnergyUsage } from "../functions";
 import { BsLightning } from "react-icons/bs";
 import { round } from "lodash";
+import { useReactFlow } from "@xyflow/react";
 
 const customStyles = {
     content: {
@@ -26,31 +27,29 @@ const customStyles = {
 };
 
 export default function RecipeModal() {
-    const { 
-        isOpen,
-        closeModal,
-        recipe = { ingredients: [], products: []} } = useModal();
+    const { isOpen, closeModal, node, setNode } = useModal();
     const { items, constructors } = useData();
+    const recipe = node.data.recipe;
     const ingredients = Object.values(recipe.ingredients);
     const products = Object.values(recipe.products);
     const factory = constructors[recipe.producedIn];
     const getItem = name => items[name];
-    const [state, dispatch] = useReducer(reducer, {}, () => getShape({recipe, factory}));
+    const [state, dispatch] = useReducer(reducer, {}, () =>  node.data);
     const [tab, setTab] = useState('machine');
     const somersloopSlots = Array.from({ length: factory.somersloopSlots}, (v, i) => i + 1);
-    const maxes = getShape({
-        recipe,
-        factory,
-        clockSpeed: 2.5, 
-        machineCount: state.machineCount
-    });
-    const energyUsage = totalEnergyUsage(state);
+    const maxes = getShape({ recipe, factory, clockSpeed: 2.5, machineCount: state.machineCount });
     const format = (num) => Math.round((num + Number.EPSILON) * 100) / 100;
+    const { updateNodeData } = useReactFlow();
+    const onRequestClose = () => {
+        updateNodeData(node.id, state);
+        setNode(null);
+        closeModal();
+    };
 
     return (
         <Modal
             isOpen={isOpen.recipe}
-            onRequestClose={closeModal}
+            onRequestClose={onRequestClose}
             style={customStyles}
         >
             <h2>Edit Recipe</h2>
@@ -88,6 +87,7 @@ export default function RecipeModal() {
                     <select 
                         className="amplification-select"
                         disabled={!somersloopSlots.length}
+                        value={state.amplification}
                         onChange={e => dispatch({'type': 'set_amplification', value: e.target.value})}
                     >
                         {!somersloopSlots.length && <option value="">Amplification Not Supported</option>}
@@ -102,7 +102,7 @@ export default function RecipeModal() {
                         <div className="input-label">
                             <BsLightning />
                         </div>
-                        <input type="text" readOnly value={round(energyUsage, 1)} />
+                        <input type="text" readOnly value={round(state.energyUsage, 1)} />
                         <div className="input-unit">MW</div>
                     </div>
                 </div>
@@ -166,7 +166,7 @@ export default function RecipeModal() {
                             <div className="input-label">
                                 <BsLightning />
                             </div>
-                            <input type="text" readOnly value={energyUsage} />
+                            <input type="text" readOnly value={round(state.energyUsage, 1)} />
                             <div className="input-unit">MW</div>
                         </div>
                     </div>
@@ -229,7 +229,7 @@ export default function RecipeModal() {
                                 <div className="input-label">
                                     <BsLightning />
                                 </div>
-                                <input type="text" readOnly value={energyUsage} />
+                                <input type="text" readOnly value={round(state.energyUsage, 1)} />
                                 <div className="input-unit">MW</div>
                             </div>
                         </div>
