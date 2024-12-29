@@ -33,13 +33,18 @@ export default function RecipeModal() {
     const { items, constructors } = useData();
     const ingredients = Object.values(recipe.ingredients);
     const products = Object.values(recipe.products);
+    const factory = constructors[recipe.producedIn];
     const getItem = name => items[name];
-    const [state, dispatch] = useReducer(reducer, {}, () => getShape({recipe}));
+    const [state, dispatch] = useReducer(reducer, {}, () => getShape({recipe, factory}));
     const [tab, setTab] = useState('machine');
-    const somersloopSlots = Array.from({ length: constructors[recipe.producedIn].somersloopSlots}, (v, i) => i + 1);
-
-    const maxes = getShape({recipe, clockSpeed: 2.5, machineCount: state.machineCount});
-    const energyUsage = totalEnergyUsage(constructors[recipe.producedIn], state );
+    const somersloopSlots = Array.from({ length: factory.somersloopSlots}, (v, i) => i + 1);
+    const maxes = getShape({
+        recipe,
+        factory,
+        clockSpeed: 2.5, 
+        machineCount: state.machineCount
+    });
+    const energyUsage = totalEnergyUsage(state);
     const format = (num) => Math.round((num + Number.EPSILON) * 100) / 100;
 
     return (

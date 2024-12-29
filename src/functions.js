@@ -1,15 +1,17 @@
 import { merge } from "lodash";
 import { Decimal } from 'decimal.js';
 
-function getShape({recipe, machineCount = 1, clockSpeed = 1, amplification = 0}) {
-    const shape = {recipe, ingredients: {}, products: {}, clockSpeed, amplification, machineCount};
+function getShape({recipe, factory, machineCount = 1, clockSpeed = 1, amplification = 0}) {
+    const shape = {recipe, factory, ingredients: {}, products: {}, clockSpeed, amplification, machineCount};
+
+    shape.energyUsage = totalEnergyUsage(shape);
 
     Object.values(recipe.ingredients).forEach((ingredient) => {
         shape.ingredients[ingredient.name] = new Decimal(getItemsPerMinute(ingredient.amount, recipe.duration)).times(clockSpeed).times(machineCount).toNumber();
     });
     
     Object.values(recipe.products).forEach((product) => {
-        const amplification = 
+        // const amplification = 
         shape.products[product.name] =  new Decimal(getItemsPerMinute(product.amount, recipe.duration))
                                             .times(clockSpeed)
                                             .times(machineCount)
@@ -20,7 +22,7 @@ function getShape({recipe, machineCount = 1, clockSpeed = 1, amplification = 0})
 }
 
 const getItemsPerMinute = (amount, duration) => (60/duration) * amount;
-const totalEnergyUsage = ({ powerUsage, somersloopSlots}, {machineCount, clockSpeed, amplification}) => {
+const totalEnergyUsage = ({machineCount, clockSpeed, amplification, factory: { powerUsage, somersloopSlots}}) => {
     const powerMultiplier = !somersloopSlots ? 1 : (1 + (amplification / somersloopSlots)) ** 2;
     const overclockPower = clockSpeed ** (Math.log(2.5) / Math.log(2));
     return machineCount * powerUsage * powerMultiplier * overclockPower ;
@@ -29,9 +31,10 @@ const totalEnergyUsage = ({ powerUsage, somersloopSlots}, {machineCount, clockSp
 function reducer(state, action) {
     const newState = { 
         recipe: state.recipe,
+        factory: state.factory,
         clockSpeed: state.clockSpeed,
         machineCount: state.machineCount,
-        amplification: state.amplification
+        amplification: state.amplification,
     };
 
     console.log(action);
@@ -75,7 +78,8 @@ function reducer(state, action) {
     }
 
     const baseObject = getShape({
-        recipe: state.recipe,
+        recipe: newState.recipe,
+        factory: newState.factory,
         clockSpeed: newState.clockSpeed,
         amplification: newState.amplification,
         machineCount: newState.machineCount
