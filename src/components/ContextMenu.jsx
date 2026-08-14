@@ -12,8 +12,9 @@ export default function ContextMenu({
   ...props
 }) {
   console.log(arguments, 'arguments');
-  const { deleteElements, getNode } = useReactFlow();
+  const { deleteElements, getNode, getEdges } = useReactFlow();
   const { openModal, setNode } = useModal();
+  const isDev = process.env.NODE_ENV === 'development';
 
   const deleteEdge = () => {
     const elements = {};
@@ -28,6 +29,14 @@ export default function ContextMenu({
     setNode(element);
     openModal('recipe');
   }
+
+  const logConnections = () => {
+
+  };
+  const logEdges = () => {
+    console.log(element);
+    console.log(getEdges());
+  };
  
   return (
     <div
@@ -37,6 +46,8 @@ export default function ContextMenu({
     >
       <button onClick={deleteEdge}>Delete</button>
       {isNode(element) && <button onClick={showRecipeModal}>Edit</button>}
+      {isDev && isNode(element) && <button onClick={logConnections}>Log Connections</button>}
+      {isDev && isNode(element) && <button onClick={logEdges}>Log Edges</button>}
     </div>
   );
 }

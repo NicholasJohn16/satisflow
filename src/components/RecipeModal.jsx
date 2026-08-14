@@ -154,7 +154,7 @@ export default function RecipeModal() {
                                 <input 
                                     type="text"
                                     value={state['products'][product.name]}
-                                    onChange={e => dispatch({type: 'set_machine_count_by_item', value: e.target.value, source: 'ingredients', item: ingredient.name })}
+                                    onChange={e => dispatch({type: 'set_machine_count_by_item', value: e.target.value, source: 'products', item: product.name })}
                                 />
                                 <div className="input-unit">/min</div>
                             </div>

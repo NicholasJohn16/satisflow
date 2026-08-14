@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from "react";
+import React, { createContext, useContext, useMemo } from "react";
 import data from '../data.json';
 const { items, recipes, constructors } = data;
 
@@ -8,10 +8,12 @@ export const DataProvider = ({children}) => {
 
     const getItem = (itemKey) => items[itemKey];
 
-    const contextValue = {
-        ...data, 
-        getItem
-    }
+    const contextValue = useMemo(() => {
+        return {
+            ...data, 
+            getItem
+        };
+    }, []);
 
     return (
         <DataContext.Provider value={contextValue}>

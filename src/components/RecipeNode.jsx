@@ -1,6 +1,7 @@
 import { 
     Handle,
-    Position
+    Position,
+    NodeResizer
 } from "@xyflow/react";
 import RecipeItem from "./RecipeItem";
 import ItemHandle from "./ItemHandle";
@@ -61,27 +62,33 @@ function RecipeNode({data, selected, id}) {
 
     return (
         <>
+            <NodeResizer
+                isVisible={selected}
+                minHeight={(data.factory.length * 5) + 22}
+                minWidth={(data.factory.width * 5) + 22}
+            />
             {ingredients.map(([ingredient, amount], index) => (
                 <ItemHandle 
                     type="target"
                     position={Position.Top}
                     style={offsets[ingredients.length][index]}
-                    id={`${id}-${ingredient}`}
+                    id={`${id}_${ingredient}`}
                     nodeId={id}
                     key={ingredient}
                     // isValidConnection={isValidConnection}
                 />
             ))}
-            <div 
-                style={styles.node}
-            >
-                <div>{recipe.displayName}</div>
-                <div className="factories">
-                    {factoryCount.map(() => (
-                        <div style={{ height: data.factory.height * 5, width: data.factory.width * 5, backgroundColor: 'black', margin: '4px'}} ></div>
+            <div style={styles.node}>
+                <div>{recipe.displayName} <span>{renderCount.current}</span></div>
+                <div>Node ID: {id}</div>
+                <div className="factories" style={{"--factory-count": data.machineCount, "--factory-width": `${data.factory.width * 5}px`, "--factory-height": `${data.factory.length * 5}px`}}>
+                    {factoryCount.map((el, index) => (
+                        <div className="factory" >
+                            {el}
+                        </div>
                     ))}
                 </div>
-                <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', margin: '.5rem 0 .5rem 0'}}>
+                {true && <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', margin: '.5rem 0 .5rem 0'}}>
                     <div className="recipe-row">
                         <div style={{padding: '2px'}}>
                             <MdLogin size={'16px'} style={{verticalAlign: 'middle'}} />
@@ -90,6 +97,8 @@ function RecipeNode({data, selected, id}) {
                             <RecipeItem key={ingredient} amount={amount} item={ingredient} />
                         ))}
                     </div>
+                </div> }
+                {true && <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', margin: '.5rem 0 .5rem 0'}}>
                     <div className="recipe-row">
                         <div style={{padding: '2px'}}>
                             <MdLogout size={'16px'} style={{verticalAlign: 'middle'}} />
@@ -98,16 +107,13 @@ function RecipeNode({data, selected, id}) {
                             <RecipeItem key={product} amount={amount} item={product} />
                         ))}
                     </div>
-                </div>
-                <button className="default" onClick={() => console.log(connections, 'connections')}>Log Connections</button>
-                <button className="default" onClick={() => console.log(getEdges())}>Log Edges</button>
-                <button className="default">{renderCount.current}</button>
+                </div> }
             </div>
             {products.map(([product, amount], index) => (
                 <ItemHandle
                     type="source"
                     position={Position.Bottom} 
-                    id={`${id}-${product}`}
+                    id={`${id}_${product}`}
                     style={offsets[products.length][index]}
                     nodeId={id}
                     key={product}

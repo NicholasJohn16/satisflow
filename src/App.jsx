@@ -13,7 +13,7 @@ import {
   MiniMap,
   Controls,
   Background,
-  Panel
+  Panel,
 } from '@xyflow/react';
 import RecipeNode from './components/RecipeNode';
 import AddRecipe from './components/AddRecipe';
@@ -58,6 +58,7 @@ function App() {
   const snapGrid = [10, 10];
   const [menu, setMenu] = useState(null);
   const ref = useRef(null);
+
   // const onConnect = useCallback(
   //   (params) => console.log('App.onConnect', new Date()),
   //   [setEdges],
