@@ -1,9 +1,8 @@
-import { useStore, useUpdateNodeInternals } from '@xyflow/react';
-import { useEffect, useMemo } from 'react';
+import { useUpdateNodeInternals } from '@xyflow/react';
+import { useEffect } from 'react';
 import {
     getOutputFulfillment,
     getOutputHandleId,
-    getResourceAllocations,
 } from '../resourceConnections';
 import { RESOURCE_NODE_EXTRACTORS } from '../resourceNodes';
 import ItemHandle from './ItemHandle';
@@ -12,14 +11,10 @@ import {
     getCenteredConnectorStyle,
     getConnectorPositions,
 } from '../connectorPositions';
+import { useFlowMetrics } from '../contexts/flowMetrics';
 
 export default function ResourceNode({id, data, width, height}) {
-    const nodes = useStore((state) => state.nodes);
-    const edges = useStore((state) => state.edges);
-    const allocations = useMemo(
-        () => getResourceAllocations(nodes, edges),
-        [edges, nodes],
-    );
+    const { allocations, edges } = useFlowMetrics();
     const resource = data.resource;
     const amount = Number(data.products?.[resource] ?? 0);
     const handleId = getOutputHandleId(id, resource);

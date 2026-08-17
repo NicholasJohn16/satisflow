@@ -1,17 +1,17 @@
-import { Position, useReactFlow, useStore, useUpdateNodeInternals } from '@xyflow/react';
-import { useEffect, useMemo } from 'react';
+import { Position, useUpdateNodeInternals } from '@xyflow/react';
+import { useEffect } from 'react';
 import {
     getInputAssignments,
     getInputFulfillment,
     getNodeProductionRatio,
     getOutputFulfillment,
     getOutputHandleId,
-    getResourceAllocations,
 } from '../resourceConnections';
 import { POWER_PLANTS } from '../powerPlants';
 import { getConnectorPositions } from '../connectorPositions';
 import ItemHandle from './ItemHandle';
 import ResizableBuildingNode from './ResizableBuildingNode';
+import { useFlowMetrics } from '../contexts/flowMetrics';
 
 const getOffset = (position, count, index) => ({
     [position === Position.Left || position === Position.Right ? 'top' : 'left']:
@@ -19,13 +19,7 @@ const getOffset = (position, count, index) => ({
 });
 
 export default function PowerPlantNode({ id, data, width, height }) {
-    const nodes = useStore((state) => state.nodes);
-    const edges = useStore((state) => state.edges);
-    const { getNode } = useReactFlow();
-    const allocations = useMemo(
-        () => getResourceAllocations(nodes, edges),
-        [edges, nodes],
-    );
+    const { allocations, edges, getNode } = useFlowMetrics();
     const connectorLayout = data.connectorLayout ?? 'vertical';
     const { inputPosition, outputPosition } = getConnectorPositions(connectorLayout);
     const updateNodeInternals = useUpdateNodeInternals();

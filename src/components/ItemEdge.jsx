@@ -1,9 +1,8 @@
 import { BaseEdge, EdgeLabelRenderer, getSmoothStepPath, useStore } from "@xyflow/react";
-import { useMemo } from "react";
 import ItemImage from "./ItemImage";
-import { getResourceAllocations } from "../resourceConnections";
 import { getSelfLoopPath, shouldShowEdgeIndicator } from "../edgePaths";
 import { humanize } from "../humanize";
+import { useFlowMetrics } from "../contexts/flowMetrics";
 
 export default function ItemEdge({
     id,
@@ -19,8 +18,7 @@ export default function ItemEdge({
     targetY,
     data,
 }) {
-    const nodes = useStore((state) => state.nodes);
-    const edges = useStore((state) => state.edges);
+    const { allocations, edges } = useFlowMetrics();
     const sourceNode = useStore((state) => state.nodeLookup.get(source));
     const nodeBounds = sourceNode
         ? {
@@ -30,10 +28,7 @@ export default function ItemEdge({
             height: sourceNode.measured.height,
         }
         : undefined;
-    const transferredAmount = useMemo(
-        () => getResourceAllocations(nodes, edges).get(id) ?? 0,
-        [edges, id, nodes],
-    );
+    const transferredAmount = allocations.get(id) ?? 0;
     const formattedAmount = humanize(transferredAmount);
     const [edgePath, labelX, labelY] = source === target
         ? getSelfLoopPath({

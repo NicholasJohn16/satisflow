@@ -257,10 +257,13 @@ const getOutputFulfillment = (nodeId, handleId, producedAmount, edges, allocatio
     };
 };
 
-const getResourceSummary = (nodes, edges) => {
+const getResourceSummary = (
+    nodes,
+    edges,
+    allocations = getResourceAllocations(nodes, edges),
+) => {
     const nodeById = new Map(nodes.map((node) => [node.id, node]));
     const getNode = (id) => nodeById.get(id);
-    const allocations = getResourceAllocations(nodes, edges);
     const inputs = new Map();
     const outputs = new Map();
     const allConsumed = new Map();

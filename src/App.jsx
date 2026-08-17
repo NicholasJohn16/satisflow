@@ -34,7 +34,6 @@ import PowerPlantNode from './components/PowerPlantNode';
 import {
   getInputAssignments,
   getNodeProductionRatio,
-  getResourceAllocations,
   getResourceFromSourceHandle,
 } from './resourceConnections';
 import {
@@ -51,6 +50,10 @@ import { RESOURCE_NODE_RESOURCES } from './resourceNodes';
 import BlueprintBackground from './components/BlueprintBackground';
 import { autoLayoutNodes } from './autoLayout';
 import { isPowerPlantFuel } from './powerPlants';
+import {
+  FlowMetricsProvider,
+  useFlowMetricsValue,
+} from './contexts/flowMetrics';
 
 const proOptions = { hideAttribution: true };
 const initialNodes = [];
@@ -113,8 +116,11 @@ function FlowCanvas() {
   const [colorMode, setColorMode] = useState(initialDisplayPreferences.colorMode);
   const [viewport, setViewport] = useState(initialFlow.viewport);
   const [isOrganizing, setIsOrganizing] = useState(false);
+  const [isNodeDragging, setIsNodeDragging] = useState(false);
   const nodeDragInProgress = useRef(false);
   const ref = useRef(null);
+  const flowMetrics = useFlowMetricsValue(nodes, edges);
+  const { allocations, getNode: getFlowNode } = flowMetrics;
 
   const handleNodesChange = useCallback((changes) => {
     const dragStarted = changes.some((change) => (
@@ -124,9 +130,15 @@ function FlowCanvas() {
       change.type === 'position' && change.dragging === false
     ));
 
-    if (dragStarted) nodeDragInProgress.current = true;
+    if (dragStarted && !nodeDragInProgress.current) {
+      nodeDragInProgress.current = true;
+      setIsNodeDragging(true);
+    }
     onNodesChange(changes);
-    if (dragFinished) nodeDragInProgress.current = false;
+    if (dragFinished && nodeDragInProgress.current) {
+      nodeDragInProgress.current = false;
+      setIsNodeDragging(false);
+    }
   }, [onNodesChange]);
 
   const updateConnectorIconScale = useCallback((nextViewport) => {
@@ -223,32 +235,30 @@ function FlowCanvas() {
     if (dropElement?.closest('.react-flow__node')) return;
 
     const { fromHandle, fromNode } = connectionState;
-    const getNode = (nodeId) => nodes.find((node) => node.id === nodeId);
     const resource = fromHandle.type === 'source'
       ? getResourceFromSourceHandle(fromNode, fromHandle.id)
       : getInputAssignments(
           fromNode.id,
           fromNode.data?.ingredients ?? {},
           edges,
-          getNode,
+          getFlowNode,
         ).find((assignment) => assignment.handleId === fromHandle.id)?.resource;
 
     if (!resource) return;
 
-    const allocations = getResourceAllocations(nodes, edges);
     const connectorAmount = fromHandle.type === 'source'
       ? Number(fromNode.data?.products?.[resource] ?? 0) * getNodeProductionRatio(
           fromNode.id,
           fromNode.data?.ingredients,
           edges,
           allocations,
-          getNode,
+          getFlowNode,
         )
       : getInputAssignments(
           fromNode.id,
           fromNode.data?.ingredients ?? {},
           edges,
-          getNode,
+          getFlowNode,
         ).find((assignment) => assignment.handleId === fromHandle.id)?.amount;
 
     const position = Number.isFinite(pointer?.clientX) && Number.isFinite(pointer?.clientY)
@@ -280,11 +290,13 @@ function FlowCanvas() {
       canAddResourceNode || canAddPowerPlant ? 'connectionNodeType' : 'recipes',
       modalOptions,
     );
-  }, [edges, items, nodes, openModal, screenToFlowPosition]);
+  }, [allocations, edges, getFlowNode, items, openModal, screenToFlowPosition]);
  
   return (
     <div style={{ width: '100vw', height: '100vh' }}>
-      <ReactFlow
+      <FlowMetricsProvider value={flowMetrics}>
+        <ReactFlow
+              className={isNodeDragging ? 'is-node-dragging' : undefined}
               ref={ref}
               style={{ '--connector-icon-scale': getConnectorIconScale(initialFlow.viewport.zoom) }}
               nodes={nodes}
@@ -300,10 +312,12 @@ function FlowCanvas() {
               snapGrid={snapGrid}
               defaultEdgeOptions={{type: 'smoothstep'}}
               defaultViewport={initialFlow.viewport}
+              minZoom={0.1}
               onEdgeContextMenu={onContextMenu}
               onNodeContextMenu={onContextMenu}
               onConnectEnd={onConnectEnd}
               onPaneClick={onPaneClick}
+              onlyRenderVisibleElements
               onMove={(event, nextViewport) => updateConnectorIconScale(nextViewport)}
               onMoveEnd={(event, nextViewport) => {
                 updateConnectorIconScale(nextViewport);
@@ -311,7 +325,7 @@ function FlowCanvas() {
               }}
               >
               <Panel position='top-left'>
-                <ResourceKey nodes={nodes} edges={edges} />
+                <ResourceKey />
               </Panel>
               <Panel position='top-center'>
                 <div className="add-node-controls">
@@ -366,7 +380,8 @@ function FlowCanvas() {
               {menu && <ContextMenu onClick={onPaneClick} {...menu} />}
               <Controls />
               <MiniMap nodeColor={getMiniMapNodeColor} />
-      </ReactFlow>
+        </ReactFlow>
+      </FlowMetricsProvider>
       <Modals />
     </div>
   );

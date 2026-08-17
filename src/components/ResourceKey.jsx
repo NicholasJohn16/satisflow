@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
+import { memo, useState } from 'react';
 import { useData } from '../contexts/data';
-import { getResourceSummary } from '../resourceConnections';
+import { useFlowMetrics } from '../contexts/flowMetrics';
 import ItemImage from './ItemImage';
 
 const formatAmount = (amount) => amount.toLocaleString(undefined, {
@@ -29,8 +29,9 @@ function ResourceList({items, totals}) {
     ));
 }
 
-export default function ResourceKey({nodes, edges}) {
+function ResourceKey() {
     const { items } = useData();
+    const { summary } = useFlowMetrics();
     const [showAll, setShowAll] = useState(false);
     const {
         consumed,
@@ -39,10 +40,7 @@ export default function ResourceKey({nodes, edges}) {
         powerConsumed,
         powerProduced,
         produced,
-    } = useMemo(
-        () => getResourceSummary(nodes, edges),
-        [edges, nodes],
-    );
+    } = summary;
     const inputTotals = showAll ? consumed : inputs;
     const outputTotals = showAll ? produced : outputs;
 
@@ -81,3 +79,5 @@ export default function ResourceKey({nodes, edges}) {
         </div>
     );
 }
+
+export default memo(ResourceKey);

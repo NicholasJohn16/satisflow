@@ -2,7 +2,6 @@ import {
     NodeResizer,
     Position,
     useReactFlow,
-    useStore,
     useUpdateNodeInternals,
 } from "@xyflow/react";
 import { useCallback, useEffect, useMemo, useRef } from "react";
@@ -13,7 +12,6 @@ import {
     getNodeProductionRatio,
     getOutputFulfillment,
     getOutputHandleId,
-    getResourceAllocations,
 } from "../resourceConnections";
 import {
     getClosestFactoryLayout,
@@ -23,6 +21,7 @@ import {
     getSnappedNodeRect,
 } from "../factoryLayout";
 import { getConnectorPositions } from '../connectorPositions';
+import { useFlowMetrics } from '../contexts/flowMetrics';
 
 const styles = {
     node: {
@@ -72,9 +71,8 @@ function RecipeNode({data, id, width, height}) {
         (_, i) => i + 1,
     );
     const previousFactoryLayout = useRef(factoryLayout);
-    const edges = useStore((state) => state.edges);
-    const nodes = useStore((state) => state.nodes);
-    const { getNode, updateNode } = useReactFlow();
+    const { allocations, edges, getNode } = useFlowMetrics();
+    const { updateNode } = useReactFlow();
     const updateNodeInternals = useUpdateNodeInternals();
     useEffect(() => {
         updateNodeInternals(id);
@@ -118,10 +116,6 @@ function RecipeNode({data, id, width, height}) {
             width: nextLayout.width,
         });
     }, [factoryLayout, factoryLayouts, id, updateNode]);
-    const allocations = useMemo(
-        () => getResourceAllocations(nodes, edges),
-        [edges, nodes],
-    );
     const inputAssignments = getInputAssignments(id, data.ingredients, edges, getNode)
         .map((assignment) => ({
             ...assignment,

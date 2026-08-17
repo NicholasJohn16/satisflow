@@ -14,9 +14,11 @@ export default function ItemImage({item, ...props}) {
         : items[item].icon) ?? fallbackIcons[itemId];
     const title = isObject ? Object.hasOwn(item, 'displayName') ? item.displayName : items[item.name].displayName : items[item].displayName;
 
+    const fullTitle = item.amount ? `${item.amount} × ${title}` : title;
+
     return (
         <img
-            title={`${item.amount} × ${title}`}
+            title={fullTitle}
             className="no-drag"
             draggable="false"
             loading="lazy"
