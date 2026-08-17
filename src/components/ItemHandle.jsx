@@ -1,136 +1,87 @@
-import { 
-    useHandleConnections, 
-    Handle,
-    useUpdateNodeInternals,
-    useReactFlow,
-    addEdge,
-    useStore,
-    getConnectedEdges,
-    useStoreApi } from "@xyflow/react";
+import { addEdge, Handle, Position, useReactFlow } from "@xyflow/react";
 import ItemImage from "./ItemImage";
 import { useData } from "../contexts/data";
-import { intersection } from "lodash";
+import { humanize } from "../humanize";
+import {
+    getFulfillmentColor,
+    getResourceFromSourceHandle,
+    isResourceConnectionValid,
+} from "../resourceConnections";
 
-
-function ItemHandle({id, nodeId, position, type, style}) {
+function ItemHandle({
+    id,
+    position,
+    type,
+    style,
+    item,
+    amount,
+    connected = false,
+    fulfillment = 0,
+}) {
     const { setEdges, getNode, getEdges } = useReactFlow();
     const { items } = useData();
-    // const state = useStore((state => state));
-    const store = useStoreApi();
 
-    // const connectedEdges = getConnectedEdges([{id: nodeId}], getEdges());
-    // console.log(connectedEdges, 'connectedEdges');
-
-    const getIntersectingItems = (source, target) => {
-        const sourceNode = getNode(source);
-        const targetNode = getNode(target);
-
-        const products = Object.values(sourceNode.data.recipe.products)
-                            .map(product => items[product.name]);
-        const ingredients = Object.values(targetNode.data.recipe.ingredients)
-                            .map(ingredient => items[ingredient.name]);
-        // const productsSet = new Set(products);
-        // const ingredientsSet = new Set(ingredients);
-
-        // return productsSet.intersection(ingredientsSet);
-
-        return intersection(products, ingredients);
-    }
-
-    const filterCurrentConnections = () => {
-
-    }
-
-    const getHandleConnections = (nodeId, id, type) => {
-        const state =  store.getState();
-
-        const string = `${nodeId}-${type}-${id ?? null}`;
-        const connections = state.connectionLookup;
-        const result = state.connectionLookup.get(string);
-
-        return Array.from(result?.values() ?? []);
-
-        // Array.from(store
-        // .getState()
-        // .connectionLookup.get(`${nodeId}-${type}-${id ?? null}`)
-        // ?.values() ?? []);
-    };
-
-    const getEdgesForHandle = (nodeId, handleId, type) => {
-        // const connections = getHandleConnections(type, nodeId);
-        // console.log(type, nodeId, handle);
-        // console.log(connections, 'getEdgesForHandle.connections.'+type);
-
-        const args = {type, nodeId, handleId};
-        console.group();
-        console.log(store.getState().connectionLookup, 'state.connectionLookup');
-        console.log(args, 'args');
-        const result = getHandleConnections(nodeId, handleId, type);
-        console.log(getHandleConnections(nodeId, handleId, type), `getHandleConnections`);
-        // console.log(getHandleConnections({type: 'target', nodeId, id}), `getHandleConnections(target, ${nodeId}, ${id})`);
-        console.groupEnd();
-
-        return result;
-    }
-
-    const isValidConnection = function({source, sourceHandle, target, targetHandle}) {
-        console.log({source, sourceHandle, target, targetHandle});
-        const intersection = getIntersectingItems(source, target);        
-        console.log(intersection, 'intersection');
-        // if there are no matching inputs and outputs
-        if(!intersection.length) {
-            return false;
-        }
-
-        const sourceEdges = getEdgesForHandle(source, sourceHandle, 'source');
-        const targetEdges = getEdgesForHandle(target, targetHandle, 'target');
-        console.log(sourceEdges, 'sourceEdges');
-        console.log(targetEdges, 'targetEdges');
-        if (sourceEdges.length) {
-
-        }
-
-        if (targetEdges.length) {
-            
-        }
-
-        // if another handle already accepts this type
-        // if this handle is already accepting another type
-
-        return true;
-    }
+    const isValidConnection = (connection) => (
+        isResourceConnectionValid(connection, getNode, getEdges())
+    );
 
     const onConnect = (connection) => {
-        const intersection = getIntersectingItems(connection.source, connection.target);
-        // console.log(intersection);
-        const newConnection = {
-            ...connection,
-            type: 'itemEdge',
-            data: {
-                item: [...intersection][0]
-            }
-        };
-        setEdges(edges => addEdge(newConnection, edges));
-        return false;
-    }
+        const resource = getResourceFromSourceHandle(
+            getNode(connection.source),
+            connection.sourceHandle,
+        );
+
+        setEdges((edges) => {
+            if (!isResourceConnectionValid(connection, getNode, edges)) return edges;
+
+            return addEdge({
+                ...connection,
+                type: 'itemEdge',
+                data: {
+                    item: items[resource],
+                    resource,
+                },
+            }, edges);
+        });
+    };
+
+    const formattedAmount = typeof amount === 'number' ? humanize(amount) : amount;
+    const fulfillmentColor = getFulfillmentColor(fulfillment);
+    const fulfillmentPercent = Math.round(fulfillment * 100);
+    const connectedHandleStyle = connected
+        ? {
+            "--fulfillment-color": fulfillmentColor,
+            borderColor: fulfillmentColor,
+        }
+        : {};
+    const title = connected
+        ? `${formattedAmount} ${items[item].displayName} (${fulfillmentPercent}% supplied)`
+        : `${formattedAmount} ${items[item].displayName}`;
+    const isSide = position === Position.Left || position === Position.Right;
+    const sideClass = isSide ? ' recipe-resource-handle--side' : '';
+    const content = (
+        <>
+            <ItemImage item={item} />
+            <span>{formattedAmount}</span>
+        </>
+    );
 
     return (
-        <>
-            <Handle
-                type={type}
-                position={position}
-                style={style}
-                id={id}
-                onConnect={onConnect}
-                isValidConnection={isValidConnection}
-                title={id}
-            />
-            {/* {connectedEdges.length && <ItemImage item={connectedEdges[0].data.item} style={{height: '1rem'}} />} */}
-        </>
-    )
+        <Handle
+            type={type}
+            position={position}
+            style={{ ...style, ...connectedHandleStyle }}
+            id={id}
+            onConnect={onConnect}
+            isValidConnection={isValidConnection}
+            title={title}
+            className={`recipe-resource-handle recipe-resource-handle--${type} nodrag nopan${sideClass}${connected ? ' recipe-resource-handle--connected' : ''}`}
+        >
+            {isSide
+                ? <span className="recipe-resource-handle__side-content">{content}</span>
+                : content}
+        </Handle>
+    );
 }
 
 export default ItemHandle;
-
-// https://reactflow.dev/examples/interaction/computing-flows
-// https://reactflow.dev/learn/advanced-use/computing-flows

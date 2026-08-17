@@ -69,13 +69,17 @@ button:focus-visible {
 
 
 .react-flow__node-recipeNode {
-  padding: 10px;
-  border-radius: var(--xy-node-border-radius, var(--xy-node-border-radius-default));
+  padding: 0;
+  /* border-radius: var(--xy-node-border-radius, var(--xy-node-border-radius-default)); */
+  border-radius: 10px;
   /* width: 150px; */
   font-size: 12px;
   color: var(--xy-node-color, var(--xy-node-color-default));
   text-align: center;
-  border: var(--xy-node-border, var(--xy-node-border-default));
+  border: 1.5px solid rgb(191, 197, 210);
+  /* outline: var(--xy-node-border, var(--xy-node-border-default)); */
+  /* outline-offset: -1px; */
+  box-shadow: rgba(28, 34, 51, 0.06) 0px 2px 0px, rgba(28, 34, 51, 0.3) 0px 8px 18px -10px;
   background-color: var(--xy-node-background-color, var(--xy-node-background-color-default));
 }
 .react-flow__node-recipeNode.selectable:hover {

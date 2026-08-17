@@ -23,6 +23,17 @@ function getShape({recipe, factory, machineCount = 1, clockSpeed = 1, amplificat
 }
 
 const getItemsPerMinute = (amount, duration) => (60/duration) * amount;
+const getShapeForItemAmount = ({ recipe, factory, source, item, amount }) => {
+    const rate = getItemsPerMinute(recipe[source][item].amount, recipe.duration);
+    const requestedAmount = Math.max(Number(amount) || 0, 0);
+    const machineCount = Math.max(Math.ceil(requestedAmount / rate), 1);
+    const clockSpeed = Math.min(Math.max(
+        requestedAmount / (rate * machineCount),
+        0.01,
+    ), 2.5);
+
+    return getShape({ recipe, factory, machineCount, clockSpeed });
+};
 const totalEnergyUsage = ({machineCount, clockSpeed, amplification, factory: { powerUsage, somersloopSlots}}) => {
     const powerMultiplier = !somersloopSlots ? 1 : (1 + (amplification / somersloopSlots)) ** 2;
     const overclockPower = clockSpeed ** (Math.log(2.5) / Math.log(2));
@@ -37,6 +48,9 @@ function reducer(state, action) {
         machineCount: state.machineCount,
         amplification: state.amplification,
     };
+    if (state.connectorLayout) {
+        newState.connectorLayout = state.connectorLayout;
+    }
 
     if(action.value < 0) return state;
     if(action.type === 'set_overclock_percent' && action.value > 250) {
@@ -74,6 +88,11 @@ function reducer(state, action) {
         case 'set_amplification':
             newState.amplification = parseInt(action.value);
             break;
+        case 'set_connector_layout':
+            newState.connectorLayout = action.value === 'horizontal'
+                ? 'horizontal'
+                : 'vertical';
+            break;
     }
 
     const baseObject = getShape({
@@ -94,4 +113,11 @@ const getOverclockByItems = ({recipe, machineCount}, {source, item, value}) => {
     return overclockPercent;
 }
 
-export { getShape, reducer, getOverclockByItems, getItemsPerMinute, totalEnergyUsage };
+export {
+    getShape,
+    getShapeForItemAmount,
+    reducer,
+    getOverclockByItems,
+    getItemsPerMinute,
+    totalEnergyUsage,
+};

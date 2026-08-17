@@ -6618,7 +6618,7 @@
       "className": "Desc_AluminaSolution_C",
       "displayName": "Alumina Solution",
       "description": "Dissolved Alumina, extracted from Bauxite. Can be further refined into Aluminum Scrap for Aluminum Ingot production.",
-      "icon": null,
+      "icon": "LiquidAlumina_Pipe",
       "form": "liquid"
     },
     "Desc_AluminumCasing_C": {
@@ -6653,7 +6653,7 @@
       "className": "Desc_SpaceElevatorPart_3_C",
       "displayName": "Automated Wiring",
       "description": "Project Part #3. Ship via the Space Elevator to complete phases of Project Assembly.",
-      "icon": null,
+      "icon": "SpelevatorPart_3",
       "form": "solid"
     },
     "Desc_SpaceElevatorPart_11_C": {
@@ -6709,7 +6709,7 @@
       "className": "Desc_Crystal_C",
       "displayName": "Blue Power Slug",
       "description": "A strange slug radiating an unknown weak power.",
-      "icon": null,
+      "icon": "PowerSlugGreen",
       "form": "solid"
     },
     "Desc_Cable_C": {
@@ -6828,7 +6828,7 @@
       "className": "Desc_LiquidOil_C",
       "displayName": "Crude Oil",
       "description": "Refined into all kinds of Oil-based resources, like Fuel and Plastic.",
-      "icon": null,
+      "icon": "LiquidOil_Pipe",
       "form": "liquid"
     },
     "Desc_CrystalOscillator_C": {
@@ -7157,7 +7157,7 @@
       "className": "Desc_Stone_C",
       "displayName": "Limestone",
       "description": "Used for crafting.\r\nA basic resource primarily used for stable Foundations.",
-      "icon": null,
+      "icon": "Stone",
       "form": "solid"
     },
     "Desc_LiquidBiofuel_C": {
@@ -7178,7 +7178,7 @@
       "className": "Desc_WAT2_C",
       "displayName": "Mercer Sphere",
       "description": "A weird alien phenomenon. While the sphere appears liquid, it behaves like a solid and does not have any detectable mass. It seems to somehow interact with and have awareness of its environment.",
-      "icon": null,
+      "icon": "WAT_2",
       "form": "solid"
     },
     "Desc_SpaceElevatorPart_4_C": {
@@ -7276,7 +7276,7 @@
       "className": "Desc_PackagedOilResidue_C",
       "displayName": "Packaged Heavy Oil Residue",
       "description": "Heavy Oil Residue, packaged for alternative transport. Can be used as fuel for vehicles.",
-      "icon": null,
+      "icon": "OilResidue",
       "form": "solid"
     },
     "Desc_PackagedIonizedFuel_C": {
@@ -7311,7 +7311,7 @@
       "className": "Desc_PackagedOil_C",
       "displayName": "Packaged Oil",
       "description": "Crude Oil, packaged for alternative transport. Can be used as fuel for vehicles.",
-      "icon": null,
+      "icon": "Oil",
       "form": "solid"
     },
     "Desc_PackagedRocketFuel_C": {
@@ -7388,7 +7388,7 @@
       "className": "Desc_CrystalShard_C",
       "displayName": "Power Shard",
       "description": "Power Slug mucus compressed into a solid crystal-like shard. \r\nIt radiates a strange power.",
-      "icon": null,
+      "icon": "PowerShard",
       "form": "solid"
     },
     "Desc_PressureConversionCube_C": {
@@ -7409,7 +7409,7 @@
       "className": "Desc_Crystal_mk3_C",
       "displayName": "Purple Power Slug",
       "description": "A strange slug radiating a powerful unknown power.",
-      "icon": null,
+      "icon": "PowerSlugPurple",
       "form": "solid"
     },
     "Desc_QuartzCrystal_C": {
@@ -7563,7 +7563,7 @@
       "className": "Desc_WAT1_C",
       "displayName": "Somersloop",
       "description": "An odd alien object with a mind-bending, yet somehow familiar shape. It emits an unsettling energy.",
-      "icon": null,
+      "icon": "WAT_1",
       "form": "solid"
     },
     "Desc_Fireworks_Projectile_03_C": {
@@ -7626,7 +7626,7 @@
       "className": "Desc_Sulfur_C",
       "displayName": "Sulfur",
       "description": "Primarily used to produce Black Powder.",
-      "icon": null,
+      "icon": "Sulfur",
       "form": "solid"
     },
     "Desc_SulfuricAcid_C": {
@@ -7724,7 +7724,7 @@
       "className": "Desc_Water_C",
       "displayName": "Water",
       "description": "It's water.",
-      "icon": null,
+      "icon": "LiquidWater_Pipe",
       "form": "liquid"
     },
     "Desc_Wire_C": {
@@ -7745,7 +7745,7 @@
       "className": "Desc_Crystal_mk2_C",
       "displayName": "Yellow Power Slug",
       "description": "A strange slug radiating an unknown power.",
-      "icon": null,
+      "icon": "PowerSlugYellow",
       "form": "solid"
     }
   },
@@ -7757,7 +7757,8 @@
       "width": 10,
       "length": 15,
       "height": 11,
-      "className": "Build_AssemblerMk1_C"
+      "className": "Build_AssemblerMk1_C",
+      "img": "assembler.png"
     },
     "Build_Blender_C": {
       "name": "Blender",

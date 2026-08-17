@@ -1,0 +1,3 @@
+const NODE_DIMENSION_SCALE = 5;
+
+export { NODE_DIMENSION_SCALE };

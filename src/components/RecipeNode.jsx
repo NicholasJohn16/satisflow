@@ -1,127 +1,270 @@
-import { 
-    Handle,
+import {
+    NodeResizer,
     Position,
-    NodeResizer
+    useReactFlow,
+    useStore,
+    useUpdateNodeInternals,
 } from "@xyflow/react";
-import RecipeItem from "./RecipeItem";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import ItemHandle from "./ItemHandle";
-import { useRef, useEffect } from "react";
-import { MdLogin, MdLogout } from "react-icons/md";
-import { useData } from "../contexts/data";
+import {
+    getInputAssignments,
+    getInputFulfillment,
+    getNodeProductionRatio,
+    getOutputFulfillment,
+    getOutputHandleId,
+    getResourceAllocations,
+} from "../resourceConnections";
+import {
+    getClosestFactoryLayout,
+    getDefaultFactoryLayout,
+    getFactoryLayoutAfterCountChange,
+    getFactoryLayouts,
+    getSnappedNodeRect,
+} from "../factoryLayout";
+import { getConnectorPositions } from '../connectorPositions';
 
 const styles = {
     node: {
         visibility: 'visible',
         zIndex: 0,
-    }
-}
+    },
+};
 
-const offsets = {
-    1: {
-        0: {left: '50%'}
-    },
-    2: {
-        0: {left: '33.3333%'},
-        1: {left: '66.6666%'}
-    },
-    3: {
-        0: {left: '25%'},
-        1: {left: '50%'},
-        2: {left: '75%'}
-    },
-    4: {
-        0: {left: '20%'},
-        1: {left: '40%'},
-        2: {left: '60%'},
-        3: {left: '80%'}
-    }
-}
+const getOffset = (position, count, index) => ({
+    [position === Position.Left || position === Position.Right ? 'top' : 'left']:
+        `${((index + 1) / (count + 1)) * 100}%`,
+});
 
-function RecipeNode({data, selected, id}) {
+function RecipeNode({data, id, width, height}) {
     const recipe = data.recipe;
-    const { getItem } = useData();
-    const ingredients = Object.entries(data.ingredients);
+    const isAlternate = recipe.className?.startsWith('Recipe_Alternate_')
+        || /^Alternate:\s*/i.test(recipe.displayName);
     const products = Object.entries(data.products);
-    // const sourceConnections = useHandleConnections({type: 'source', id: 'Desc_Computer_C'});
-    // const targetConnections = useHandleConnections({type: 'target', id: 'Desc_Computer_C'});
-    const factoryCount = Array.from({ length: data.machineCount}, (v, i) => i + 1);
-    const renderCount = useRef(0);
-
+    const connectorLayout = data.connectorLayout ?? 'vertical';
+    const { inputPosition, outputPosition } = getConnectorPositions(connectorLayout);
+    const factoryLayouts = useMemo(
+        () => getFactoryLayouts(data),
+        [data],
+    );
+    const defaultFactoryLayout = useMemo(
+        () => getDefaultFactoryLayout(factoryLayouts),
+        [factoryLayouts],
+    );
+    const hasMeasuredSize = Number.isFinite(width) && Number.isFinite(height);
+    const availableSize = useMemo(
+        () => hasMeasuredSize
+            ? { width, height }
+            : defaultFactoryLayout,
+        [defaultFactoryLayout, hasMeasuredSize, height, width],
+    );
+    const resizeStart = useRef(null);
+    const factoryLayout = useMemo(
+        () => getClosestFactoryLayout(
+            factoryLayouts,
+            availableSize,
+            resizeStart.current,
+        ),
+        [availableSize, factoryLayouts],
+    );
+    const factoryCount = Array.from(
+        { length: factoryLayout.machineCount },
+        (_, i) => i + 1,
+    );
+    const previousFactoryLayout = useRef(factoryLayout);
+    const edges = useStore((state) => state.edges);
+    const nodes = useStore((state) => state.nodes);
+    const { getNode, updateNode } = useReactFlow();
+    const updateNodeInternals = useUpdateNodeInternals();
     useEffect(() => {
-        renderCount.current++;
+        updateNodeInternals(id);
+    }, [connectorLayout, id, updateNodeInternals]);
+    useEffect(() => {
+        if (!hasMeasuredSize || resizeStart.current) return;
+
+        const matchesLayout = factoryLayouts.some((layout) => (
+            layout.width === width && layout.height === height
+        ));
+        if (matchesLayout) return;
+
+        updateNode(id, {
+            height: factoryLayout.height,
+            width: factoryLayout.width,
+        });
+    }, [
+        factoryLayout,
+        factoryLayouts,
+        hasMeasuredSize,
+        height,
+        id,
+        updateNode,
+        width,
+    ]);
+    useEffect(() => {
+        const previousLayout = previousFactoryLayout.current;
+
+        if (previousLayout.machineCount === factoryLayout.machineCount) {
+            previousFactoryLayout.current = factoryLayout;
+            return;
+        }
+
+        const nextLayout = getFactoryLayoutAfterCountChange(
+            factoryLayouts,
+            previousLayout,
+        );
+        previousFactoryLayout.current = nextLayout;
+        updateNode(id, {
+            height: nextLayout.height,
+            width: nextLayout.width,
+        });
+    }, [factoryLayout, factoryLayouts, id, updateNode]);
+    const allocations = useMemo(
+        () => getResourceAllocations(nodes, edges),
+        [edges, nodes],
+    );
+    const inputAssignments = getInputAssignments(id, data.ingredients, edges, getNode)
+        .map((assignment) => ({
+            ...assignment,
+            ...getInputFulfillment(
+                id,
+                assignment.handleId,
+                assignment.amount,
+                edges,
+                allocations,
+            ),
+        }));
+    const productionRatio = getNodeProductionRatio(
+        id,
+        data.ingredients,
+        edges,
+        allocations,
+        getNode,
+    );
+    const outputAssignments = products.map(([resource, amount]) => {
+        const handleId = getOutputHandleId(id, resource);
+        const producedAmount = Math.round(amount * productionRatio * 1e10) / 1e10;
+        const { ratio } = getOutputFulfillment(
+            id,
+            handleId,
+            producedAmount,
+            edges,
+            allocations,
+        );
+
+        return {
+            amount: producedAmount,
+            connected: edges.some((edge) => (
+                edge.source === id && edge.sourceHandle === handleId
+            )),
+            fulfillment: ratio,
+            handleId,
+            resource,
+        };
     });
 
+    const onResizeStart = useCallback((event, params) => {
+        resizeStart.current = params;
+    }, []);
 
-    // console.log(sourceConnections, 'sourceConnections');
-    // console.log(targetConnections, 'targetConnections');
-    // console.log(getEdges(), 'getEdges');
+    const onResizeEnd = useCallback((event, params) => {
+        const layout = getClosestFactoryLayout(
+            factoryLayouts,
+            params,
+            resizeStart.current,
+        );
+        const snapped = getSnappedNodeRect(
+            layout,
+            resizeStart.current ?? params,
+            params,
+        );
 
-    // const connections = ingredients.map(([key, ingredient], index) => (
-    //     useHandleConnections({type: 'source', id: `${id}-${ingredient.name}` })
-    // ));
+        updateNode(id, {
+            height: snapped.height,
+            position: snapped.position,
+            width: snapped.width,
+        });
+        resizeStart.current = null;
+    }, [factoryLayouts, id, updateNode]);
 
     return (
         <>
             <NodeResizer
-                isVisible={selected}
-                minHeight={(data.factory.length * 5) + 22}
-                minWidth={(data.factory.width * 5) + 22}
+                isVisible
+                handleClassName="recipe-node__resize-handle"
+                lineClassName="recipe-node__resize-line"
+                minHeight={Math.min(...factoryLayouts.map((layout) => layout.height))}
+                minWidth={Math.min(...factoryLayouts.map((layout) => layout.width))}
+                maxHeight={Math.max(...factoryLayouts.map((layout) => layout.height))}
+                maxWidth={Math.max(...factoryLayouts.map((layout) => layout.width))}
+                onResizeStart={onResizeStart}
+                onResizeEnd={onResizeEnd}
             />
-            {ingredients.map(([ingredient, amount], index) => (
-                <ItemHandle 
+            {inputAssignments.map(({amount, connected, handleId, ratio, resource}, index) => (
+                <ItemHandle
                     type="target"
-                    position={Position.Top}
-                    style={offsets[ingredients.length][index]}
-                    id={`${id}_${ingredient}`}
-                    nodeId={id}
-                    key={ingredient}
-                    // isValidConnection={isValidConnection}
+                    position={inputPosition}
+                    style={getOffset(inputPosition, inputAssignments.length, index)}
+                    id={handleId}
+                    key={handleId}
+                    item={resource}
+                    amount={amount}
+                    connected={connected}
+                    fulfillment={ratio}
                 />
             ))}
-            <div style={styles.node}>
-                <div>{recipe.displayName} <span>{renderCount.current}</span></div>
-                <div>Node ID: {id}</div>
-                <div className="factories" style={{"--factory-count": data.machineCount, "--factory-width": `${data.factory.width * 5}px`, "--factory-height": `${data.factory.length * 5}px`}}>
-                    {factoryCount.map((el, index) => (
-                        <div className="factory" >
-                            {el}
+            <div
+                className={`recipe-node__body${isAlternate ? ' recipe-node__body--alternate' : ''}`}
+                style={{
+                    ...styles.node,
+                    height: hasMeasuredSize ? '100%' : `${defaultFactoryLayout.height}px`,
+                    width: hasMeasuredSize ? '100%' : `${defaultFactoryLayout.width}px`,
+                }}
+            >
+                {/* <div className="recipe-node__heading" title={displayName}>
+                    {displayName}
+                </div>
+                <div className="recipe-node__heading">
+                    <small>{data.factory.name} • {Math.round(data.clockSpeed * 100)}% • {data.amplification} A</small>
+                </div> */}
+                <div
+                    className="factories"
+                    data-rotated={factoryLayout.rotated}
+                    style={{
+                        "--factory-columns": factoryLayout.columns,
+                        "--factory-width": `${factoryLayout.factoryWidth}px`,
+                        "--factory-height": `${factoryLayout.factoryHeight}px`,
+                        "--factory-body-width": `${factoryLayouts[0].factoryWidth}px`,
+                        "--factory-body-height": `${factoryLayouts[0].factoryHeight}px`,
+                    }}
+                >
+                    {factoryCount.map((factoryNumber) => (
+                        <div className="factory-slot" key={factoryNumber}>
+                            <div className="factory" />
                         </div>
                     ))}
                 </div>
-                {true && <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', margin: '.5rem 0 .5rem 0'}}>
-                    <div className="recipe-row">
-                        <div style={{padding: '2px'}}>
-                            <MdLogin size={'16px'} style={{verticalAlign: 'middle'}} />
-                        </div>
-                        {ingredients.map(([ingredient, amount]) => (
-                            <RecipeItem key={ingredient} amount={amount} item={ingredient} />
-                        ))}
-                    </div>
-                </div> }
-                {true && <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', margin: '.5rem 0 .5rem 0'}}>
-                    <div className="recipe-row">
-                        <div style={{padding: '2px'}}>
-                            <MdLogout size={'16px'} style={{verticalAlign: 'middle'}} />
-                        </div>
-                        {products.map(([product, amount]) => (
-                            <RecipeItem key={product} amount={amount} item={product} />
-                        ))}
-                    </div>
-                </div> }
             </div>
-            {products.map(([product, amount], index) => (
+            {outputAssignments.map(({
+                amount,
+                connected,
+                fulfillment,
+                handleId,
+                resource,
+            }, index) => (
                 <ItemHandle
                     type="source"
-                    position={Position.Bottom} 
-                    id={`${id}_${product}`}
-                    style={offsets[products.length][index]}
-                    nodeId={id}
-                    key={product}
-                    // isValidConnection={isValidConnection}
+                    position={outputPosition}
+                    id={handleId}
+                    style={getOffset(outputPosition, outputAssignments.length, index)}
+                    key={handleId}
+                    item={resource}
+                    amount={amount}
+                    connected={connected}
+                    fulfillment={fulfillment}
                 />
             ))}
         </>
-    )
+    );
 }
 
 export default RecipeNode;

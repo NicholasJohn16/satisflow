@@ -1,11 +1,26 @@
 import { describe, expect, it } from 'vitest'
-import { reducer, totalEnergyUsage } from './functions'
+import { getShapeForItemAmount, reducer, totalEnergyUsage } from './functions'
 import data from './data.json';
 const { recipes, constructors } = data;
 
 describe('reducer', () => {
     const recipe = recipes['Recipe_SpaceElevatorPart_12_C'];
     const factory = constructors[recipe.producedIn];
+
+    it('stores a connector layout per recipe node', () => {
+        const result = reducer({
+            recipe,
+            factory,
+            machineCount: 1,
+            clockSpeed: 1,
+            amplification: 0,
+        }, {
+            type: 'set_connector_layout',
+            value: 'horizontal',
+        });
+
+        expect(result.connectorLayout).toBe('horizontal');
+    });
 
     it('sets overclock rate', () => {
         const state = { recipe, factory };
@@ -425,6 +440,26 @@ describe('reducer', () => {
         expect(result).toStrictEqual(expected);
     });
 
+});
+
+describe('getShapeForItemAmount', () => {
+    it('sizes and clocks a recipe to match a connector amount', () => {
+        const recipe = recipes['Recipe_SpaceElevatorPart_12_C'];
+        const factory = constructors[recipe.producedIn];
+        const result = getShapeForItemAmount({
+            recipe,
+            factory,
+            source: 'products',
+            item: 'Desc_SpaceElevatorPart_12_C',
+            amount: 6,
+        });
+
+        expect(result).toMatchObject({
+            clockSpeed: 0.75,
+            machineCount: 2,
+            products: { Desc_SpaceElevatorPart_12_C: 6 },
+        });
+    });
 });
 
 describe('totalEnergyUsage', () => {
